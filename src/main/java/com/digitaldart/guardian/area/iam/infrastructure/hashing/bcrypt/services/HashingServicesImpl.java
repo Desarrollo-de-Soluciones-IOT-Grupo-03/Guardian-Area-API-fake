@@ -2,7 +2,9 @@ package com.digitaldart.guardian.area.iam.infrastructure.hashing.bcrypt.services
 
 import com.digitaldart.guardian.area.iam.infrastructure.hashing.bcrypt.BCryptHashingService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
 
+@Service
 public class HashingServicesImpl implements BCryptHashingService {
 
     private final BCryptPasswordEncoder passwordEncoder;

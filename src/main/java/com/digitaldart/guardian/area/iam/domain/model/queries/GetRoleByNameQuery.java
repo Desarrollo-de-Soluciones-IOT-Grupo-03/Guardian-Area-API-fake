@@ -1,4 +1,6 @@
 package com.digitaldart.guardian.area.iam.domain.model.queries;
 
-public record GetRoleByNameQuery(String name) {
+import com.digitaldart.guardian.area.iam.domain.model.valueobjects.Roles;
+
+public record GetRoleByNameQuery(Roles name) {
 }

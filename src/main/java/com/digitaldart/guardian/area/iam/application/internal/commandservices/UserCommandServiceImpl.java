@@ -9,6 +9,7 @@ import com.digitaldart.guardian.area.iam.domain.model.valueobjects.Roles;
 import com.digitaldart.guardian.area.iam.domain.services.UserCommandService;
 import com.digitaldart.guardian.area.iam.infrastructure.persistence.jpa.repositories.RoleRepository;
 import com.digitaldart.guardian.area.iam.infrastructure.persistence.jpa.repositories.UserRepository;
+import com.digitaldart.guardian.area.shared.domain.exceptions.ResourceNotFoundException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +41,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         }
         roles = command.roles().stream()
                 .map(role -> roleRepository.findByName(role.getName())
-                        .orElseThrow(() -> new RuntimeException("Role not found"))).toList();
+                        .orElseThrow(() -> new ResourceNotFoundException("Role not found"))).toList();
         var user = new User(command.username(), hashingService.encode(command.password()), roles);
         userRepository.save(user);
         return userRepository.findByUsername(command.username());

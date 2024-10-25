@@ -7,10 +7,12 @@ import com.digitaldart.guardian.area.iam.domain.model.queries.GetUserByUsernameQ
 import com.digitaldart.guardian.area.iam.domain.services.UserCommandService;
 import com.digitaldart.guardian.area.iam.domain.services.UserQueryService;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class IamContextFacade {
     private final UserCommandService userCommandService;
     private final UserQueryService userQueryService;

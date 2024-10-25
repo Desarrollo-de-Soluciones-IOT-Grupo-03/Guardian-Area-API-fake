@@ -1,0 +1,36 @@
+package com.digitaldart.guardian.area.monitoring.interfaces.rest;
+
+import com.digitaldart.guardian.area.monitoring.domain.model.queries.GetAllDevicesByUsername;
+import com.digitaldart.guardian.area.monitoring.domain.services.DeviceQueryService;
+import com.digitaldart.guardian.area.monitoring.interfaces.rest.resource.DeviceResource;
+import com.digitaldart.guardian.area.monitoring.interfaces.rest.transform.DeviceResourceFromEntityAssembler;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+@RestController
+@RequestMapping(value = "/api/v1/users/{username}/devices", produces = APPLICATION_JSON_VALUE)
+@Tag(name = "Users")
+public class UserDevicesController {
+
+    private final DeviceQueryService deviceQueryService;
+
+    public UserDevicesController(DeviceQueryService deviceQueryService) {
+        this.deviceQueryService = deviceQueryService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<DeviceResource>> getDevicesForUserWithUsername(@PathVariable String username){
+        var getAllDevicesByUsername = new GetAllDevicesByUsername(username);
+        var devices = deviceQueryService.handle(getAllDevicesByUsername);
+        var devicesResource = devices.stream().map(DeviceResourceFromEntityAssembler::toResourceFromEntity).toList();
+        return ResponseEntity.ok(devicesResource);
+    }
+}

@@ -1,6 +1,6 @@
 package com.digitaldart.guardian.area.monitoring.interfaces.rest;
 
-import com.digitaldart.guardian.area.monitoring.domain.model.queries.GetAllDevicesByUsername;
+import com.digitaldart.guardian.area.monitoring.domain.model.queries.GetAllDevicesByUsernameQuery;
 import com.digitaldart.guardian.area.monitoring.domain.services.DeviceQueryService;
 import com.digitaldart.guardian.area.monitoring.interfaces.rest.resource.DeviceResource;
 import com.digitaldart.guardian.area.monitoring.interfaces.rest.transform.DeviceResourceFromEntityAssembler;
@@ -28,8 +28,8 @@ public class UserDevicesController {
 
     @GetMapping
     public ResponseEntity<List<DeviceResource>> getDevicesForUserWithUsername(@PathVariable String username){
-        var getAllDevicesByUsername = new GetAllDevicesByUsername(username);
-        var devices = deviceQueryService.handle(getAllDevicesByUsername);
+        var getAllDevicesByUsernameQuery = new GetAllDevicesByUsernameQuery(username);
+        var devices = deviceQueryService.handle(getAllDevicesByUsernameQuery);
         var devicesResource = devices.stream().map(DeviceResourceFromEntityAssembler::toResourceFromEntity).toList();
         return ResponseEntity.ok(devicesResource);
     }

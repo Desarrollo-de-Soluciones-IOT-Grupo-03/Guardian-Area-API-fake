@@ -53,7 +53,7 @@ public class GeoFence extends AuditableAbstractAggregateRoot<GeoFence> {
     }
 
     public static Coordinate toCoordinateFromLatitudeAndLongitudePair(Pair<Float, Float> coordinate) {
-        return new Coordinate(coordinate.left(), coordinate.right());
+        return new Coordinate(coordinate.latitude(), coordinate.longitude());
     }
 
     public static Pair<Float, Float> toLatitudeAndLongitudePairFromCoordinate(Coordinate coordinate) {

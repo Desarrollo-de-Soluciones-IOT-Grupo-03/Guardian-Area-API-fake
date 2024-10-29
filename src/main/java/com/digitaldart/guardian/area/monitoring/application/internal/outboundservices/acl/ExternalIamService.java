@@ -2,8 +2,10 @@ package com.digitaldart.guardian.area.monitoring.application.internal.outboundse
 
 import com.digitaldart.guardian.area.iam.interfaces.acl.IamContextFacade;
 import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.UserId;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.util.Optional;
 
 @Service
@@ -24,6 +26,12 @@ public class ExternalIamService {
     public Optional<UserId> createUser(String username, String password, String email, String firstName, String lastName) {
         var userId = iamContextFacade.createUser(username, email, firstName, lastName,password);
         if (userId == 0L) return Optional.empty();
+        return Optional.of(new UserId(userId));
+    }
+
+    public Optional<UserId> fetchUsernameById(Long userId) {
+        var username = iamContextFacade.fetchUsernameByUserId(userId);
+        if (username.equals(Strings.EMPTY)) return Optional.empty();
         return Optional.of(new UserId(userId));
     }
 }

@@ -47,7 +47,7 @@ public class GeoFence extends AuditableAbstractAggregateRoot<GeoFence> {
     }
 
     private void validateCoordinates() {
-        if (coordinates.size() >= MAX_COORDINATES) {
+        if (coordinates.size() > MAX_COORDINATES) {
             throw new ValidationException("Geofence can have only " + MAX_COORDINATES + " coordinates.");
         }
     }

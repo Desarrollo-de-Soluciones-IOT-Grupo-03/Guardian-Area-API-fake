@@ -7,10 +7,12 @@ import com.digitaldart.guardian.area.iam.domain.model.queries.GetUserByUsernameQ
 import com.digitaldart.guardian.area.iam.domain.services.UserCommandService;
 import com.digitaldart.guardian.area.iam.domain.services.UserQueryService;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class IamContextFacade {
     private final UserCommandService userCommandService;
     private final UserQueryService userQueryService;
@@ -20,16 +22,16 @@ public class IamContextFacade {
         this.userQueryService = userQueryService;
     }
 
-    public Long createUser(String username, String password) {
-        var signUpCommand = new SignUpCommand(username, password, List.of(Role.getDefaultRole()));
+    public Long createUser(String username, String password, String email, String firstName, String lastName) {
+        var signUpCommand = new SignUpCommand(username, password, email, firstName, lastName,List.of(Role.getDefaultRole()));
         var result = userCommandService.handle(signUpCommand);
         if (result.isEmpty()) return 0L;
         return result.get().getId();
     }
 
-    public Long createUser(String username, String password, List<String> roleNames) {
+    public Long createUser(String username, String password, String email, String firstName, String lastName, List<String> roleNames) {
         var roles = roleNames != null ? roleNames.stream().map(Role::toRoleFromName).toList() : new ArrayList<Role>();
-        var signUpCommand = new SignUpCommand(username, password, roles);
+        var signUpCommand = new SignUpCommand(username, password, email, firstName, lastName, roles);
         var result = userCommandService.handle(signUpCommand);
         if (result.isEmpty()) return 0L;
         return result.get().getId();

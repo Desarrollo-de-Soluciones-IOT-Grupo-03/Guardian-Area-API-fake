@@ -1,6 +1,8 @@
 package com.digitaldart.guardian.area.iam.domain.model.aggregates;
 
 import com.digitaldart.guardian.area.iam.domain.model.entities.Role;
+import com.digitaldart.guardian.area.iam.domain.model.valueobjects.EmailAddress;
+import com.digitaldart.guardian.area.iam.domain.model.valueobjects.PersonName;
 import com.digitaldart.guardian.area.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -31,6 +33,14 @@ public class User extends AuditableAbstractAggregateRoot<User> {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
 
+    @Getter
+    @Column(nullable = true)
+    private EmailAddress email;
+
+    @Getter
+    @Column(nullable = true)
+    private PersonName personName;
+
     public User() { this.roles = new HashSet<>();}
 
     public User(String username, String password) {
@@ -41,6 +51,13 @@ public class User extends AuditableAbstractAggregateRoot<User> {
 
     public User(String username, String password, List<Role> roles) {
         this(username, password);
+        addRoles(roles);
+    }
+
+    public User(String username, String email, String firstName, String lastName, String password, List<Role> roles) {
+        this(username, password);
+        this.email = new EmailAddress(email);
+        this.personName = new PersonName(firstName, lastName);
         addRoles(roles);
     }
 

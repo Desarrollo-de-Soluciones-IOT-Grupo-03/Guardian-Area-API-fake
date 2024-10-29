@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 
-@Service
+@Service("ApplicationReadyEventHandlerIam")
 public class ApplicationReadyEventHandler {
 
     private final RoleCommandService roleCommandService;

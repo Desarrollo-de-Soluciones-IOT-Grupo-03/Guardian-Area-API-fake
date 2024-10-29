@@ -2,7 +2,7 @@ package com.digitaldart.guardian.area.monitoring.application.internal.queyservic
 
 import com.digitaldart.guardian.area.monitoring.application.internal.outboundservices.acl.ExternalIamService;
 import com.digitaldart.guardian.area.monitoring.domain.model.aggregates.Device;
-import com.digitaldart.guardian.area.monitoring.domain.model.queries.GetAllDevicesByUsernameQuery;
+import com.digitaldart.guardian.area.monitoring.domain.model.queries.GetAllDevicesByUserIdQuery;
 import com.digitaldart.guardian.area.monitoring.domain.services.DeviceQueryService;
 import com.digitaldart.guardian.area.monitoring.infrastructure.persistence.jpa.repositories.DeviceRepository;
 import com.digitaldart.guardian.area.shared.domain.exceptions.ResourceNotFoundException;
@@ -22,10 +22,10 @@ public class DeviceQueryServiceImpl implements DeviceQueryService {
     }
 
     @Override
-    public List<Device> handle(GetAllDevicesByUsernameQuery query) {
-        var userId = externalIamService.fetchUserIdByUsername(query.username());
+    public List<Device> handle(GetAllDevicesByUserIdQuery query) {
+        var userId = externalIamService.fetchUsernameById(query.userId());
         if (userId.isEmpty()) {
-            throw new ResourceNotFoundException("Username not found");
+            throw new ResourceNotFoundException("User id not found");
         }
         return deviceRepository.findAllByUserId(userId.get());
     }

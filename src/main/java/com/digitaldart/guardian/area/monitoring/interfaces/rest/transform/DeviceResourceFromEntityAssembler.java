@@ -7,7 +7,7 @@ public class DeviceResourceFromEntityAssembler {
     public static DeviceResource toResourceFromEntity(Device device){
         return new DeviceResource(
                 device.getDeviceRecordId(),
-                device.getNickname(),
+                device.getDeviceNickname(),
                 device.getBearer(),
                 device.getDeviceCareModes().toString(),
                 device.getDeviceStatuses().toString(),

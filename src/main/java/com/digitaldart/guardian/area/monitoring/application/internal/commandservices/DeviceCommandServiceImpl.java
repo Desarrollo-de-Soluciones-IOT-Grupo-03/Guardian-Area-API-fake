@@ -1,11 +1,14 @@
 package com.digitaldart.guardian.area.monitoring.application.internal.commandservices;
 
+import com.digitaldart.guardian.area.monitoring.application.internal.outboundservices.SecureApiKeyGenerator;
 import com.digitaldart.guardian.area.monitoring.application.internal.outboundservices.acl.ExternalIamService;
 import com.digitaldart.guardian.area.monitoring.domain.model.aggregates.Device;
-import com.digitaldart.guardian.area.monitoring.domain.model.commands.CreateDeviceCommand;
+import com.digitaldart.guardian.area.monitoring.domain.model.commands.AssignDeviceCommand;
+import com.digitaldart.guardian.area.monitoring.domain.model.commands.RegisterDeviceCommand;
 import com.digitaldart.guardian.area.monitoring.domain.services.DeviceCommandService;
 import com.digitaldart.guardian.area.monitoring.infrastructure.persistence.jpa.repositories.DeviceRepository;
 import com.digitaldart.guardian.area.shared.domain.exceptions.ResourceNotFoundException;
+import com.digitaldart.guardian.area.shared.domain.exceptions.ValidationException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -22,13 +25,29 @@ public class DeviceCommandServiceImpl implements DeviceCommandService {
     }
 
     @Override
-    public Optional<Device> handle(CreateDeviceCommand command) {
-        var userId = externalIamService.fetchUserIdByUsername(command.username());
+    public Optional<Device> handle(AssignDeviceCommand command) {
+        var userId = externalIamService.fetchUsernameById(command.userId());
         if (userId.isEmpty()) {
-            throw new ResourceNotFoundException("Username not found");
+            throw new ResourceNotFoundException("User not found");
         }
-        var device = new Device(userId.get(), command);
-        deviceRepository.save(device);
-        return deviceRepository.findByGuardianAreaDeviceRecordId(device.getGuardianAreaDeviceRecordId());
+        var device = deviceRepository.findByGuardianAreaDeviceRecordId(command.guardianAreaDeviceRecordId());
+        if (device.isEmpty()) {
+            throw new ResourceNotFoundException("Device not found");
+        }
+        device.get().setUserId(userId.get());
+        deviceRepository.save(device.get());
+        return deviceRepository.findByGuardianAreaDeviceRecordId(device.get().getGuardianAreaDeviceRecordId());
+    }
+
+    @Override
+    public Optional<String> handle(RegisterDeviceCommand command) {
+        var device = deviceRepository.findByGuardianAreaDeviceRecordId(command.guardianAreaDeviceRecordId());
+        if (device.isPresent()) {
+            throw new ValidationException("Device is already registered");
+        }
+        var apiKey =  SecureApiKeyGenerator.generateToken();
+        var newDevice = new Device(command, apiKey);
+        deviceRepository.save(newDevice);
+        return Optional.of(apiKey);
     }
 }

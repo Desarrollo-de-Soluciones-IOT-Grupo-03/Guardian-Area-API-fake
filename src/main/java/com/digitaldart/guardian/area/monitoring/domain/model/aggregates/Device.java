@@ -1,19 +1,19 @@
 package com.digitaldart.guardian.area.monitoring.domain.model.aggregates;
 
-import com.digitaldart.guardian.area.monitoring.domain.model.commands.CreateDeviceCommand;
-import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.DeviceCareModes;
-import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.DeviceStatuses;
-import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.GuardianAreaDeviceRecordId;
-import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.UserId;
+import com.digitaldart.guardian.area.monitoring.domain.model.commands.AssignDeviceCommand;
+import com.digitaldart.guardian.area.monitoring.domain.model.commands.RegisterDeviceCommand;
+import com.digitaldart.guardian.area.monitoring.domain.model.commands.UpdateDeviceCommand;
+import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.*;
 import com.digitaldart.guardian.area.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 public class Device extends AuditableAbstractAggregateRoot<Device> {
 
     @Getter
-    private String nickname;
+    private String deviceNickname;
 
     @Getter
     private String bearer;
@@ -28,13 +28,18 @@ public class Device extends AuditableAbstractAggregateRoot<Device> {
     @Column(name = "care_mode")
     private DeviceCareModes deviceCareModes;
 
+    @Setter
     @Embedded
     private UserId userId;
 
     @Getter
     @Embedded
     @Column(name = "guardian_area_device_id")
-    private final GuardianAreaDeviceRecordId guardianAreaDeviceRecordId;
+    private GuardianAreaDeviceRecordId guardianAreaDeviceRecordId;
+
+    @Getter
+    @Embedded
+    private ApiKey apiKey;
 
     public Device() {
         this.userId = new UserId();
@@ -48,12 +53,30 @@ public class Device extends AuditableAbstractAggregateRoot<Device> {
         this.userId = userId;
     }
 
-    public Device(UserId userId, CreateDeviceCommand command){
-        this(userId);
-        this.nickname = command.nickname();
+    public Device(AssignDeviceCommand command){
+        this(new UserId(command.userId()));
+        this.guardianAreaDeviceRecordId = command.guardianAreaDeviceRecordId();
+        this.deviceNickname = "-";
+        this.bearer = "-";
+        this.deviceCareModes = DeviceCareModes.INFANT;
+        this.deviceStatuses = DeviceStatuses.CONNECTED;
+    }
+
+    public Device(RegisterDeviceCommand command, String apiKey) {
+        this.userId = null;
+        this.deviceNickname = null;
+        this.bearer = null;
+        this.deviceStatuses = DeviceStatuses.DISCONNECTED;
+        this.deviceCareModes = DeviceCareModes.INFANT;
+        this.guardianAreaDeviceRecordId = command.guardianAreaDeviceRecordId();
+        this.apiKey = new ApiKey(apiKey);
+    }
+
+    public void updateDevice(UpdateDeviceCommand command){
+        this.deviceNickname = command.deviceNickname();
+        this.deviceCareModes = command.deviceCareModes();
         this.bearer = command.bearer();
-        this.deviceCareModes = command.careMode();
-        this.deviceStatuses = command.status();
+        this.deviceStatuses = command.deviceStatuses();
     }
 
     public String getDeviceRecordId() {
@@ -63,4 +86,5 @@ public class Device extends AuditableAbstractAggregateRoot<Device> {
     public Long getUserId() {
         return this.userId.userId();
     }
+
 }

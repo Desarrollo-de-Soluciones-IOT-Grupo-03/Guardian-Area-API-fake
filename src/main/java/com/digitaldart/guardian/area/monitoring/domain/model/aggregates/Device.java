@@ -2,6 +2,7 @@ package com.digitaldart.guardian.area.monitoring.domain.model.aggregates;
 
 import com.digitaldart.guardian.area.monitoring.domain.model.commands.AssignDeviceCommand;
 import com.digitaldart.guardian.area.monitoring.domain.model.commands.RegisterDeviceCommand;
+import com.digitaldart.guardian.area.monitoring.domain.model.commands.UpdateDeviceCommand;
 import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.*;
 import com.digitaldart.guardian.area.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import jakarta.persistence.*;
@@ -69,6 +70,13 @@ public class Device extends AuditableAbstractAggregateRoot<Device> {
         this.deviceCareModes = DeviceCareModes.INFANT;
         this.guardianAreaDeviceRecordId = command.guardianAreaDeviceRecordId();
         this.apiKey = new ApiKey(apiKey);
+    }
+
+    public void updateDevice(UpdateDeviceCommand command){
+        this.deviceNickname = command.deviceNickname();
+        this.deviceCareModes = command.deviceCareModes();
+        this.bearer = command.bearer();
+        this.deviceStatuses = command.deviceStatuses();
     }
 
     public String getDeviceRecordId() {

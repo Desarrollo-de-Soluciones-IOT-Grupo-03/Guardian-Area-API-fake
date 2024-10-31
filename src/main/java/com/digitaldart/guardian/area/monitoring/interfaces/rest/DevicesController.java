@@ -1,17 +1,16 @@
 package com.digitaldart.guardian.area.monitoring.interfaces.rest;
 
 import com.digitaldart.guardian.area.monitoring.domain.model.commands.RegisterDeviceCommand;
+import com.digitaldart.guardian.area.monitoring.domain.model.commands.UpdateDeviceCommand;
 import com.digitaldart.guardian.area.monitoring.domain.model.queries.GetDeviceByGuardianAreaDeviceRecordIdQuery;
 import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.GuardianAreaDeviceRecordId;
 import com.digitaldart.guardian.area.monitoring.domain.services.DeviceCommandService;
 import com.digitaldart.guardian.area.monitoring.domain.services.DeviceQueryService;
-import com.digitaldart.guardian.area.monitoring.interfaces.rest.resource.ApiKeyResource;
-import com.digitaldart.guardian.area.monitoring.interfaces.rest.resource.AssignDeviceResource;
-import com.digitaldart.guardian.area.monitoring.interfaces.rest.resource.DeviceResource;
-import com.digitaldart.guardian.area.monitoring.interfaces.rest.resource.RegisterDeviceResource;
+import com.digitaldart.guardian.area.monitoring.interfaces.rest.resource.*;
 import com.digitaldart.guardian.area.monitoring.interfaces.rest.transform.AssignDeviceCommandFromResourceAssembler;
 import com.digitaldart.guardian.area.monitoring.interfaces.rest.transform.DeviceResourceFromEntityAssembler;
 import com.digitaldart.guardian.area.monitoring.interfaces.rest.transform.RegisterDeviceCommandFromResourceAssembler;
+import com.digitaldart.guardian.area.monitoring.interfaces.rest.transform.UpdateDeviceCommandFromResourceAssembler;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -62,7 +61,17 @@ public class DevicesController {
         }
         var deviceResource = DeviceResourceFromEntityAssembler.toResourceFromEntity(device.get());
         return ResponseEntity.ok(deviceResource);
+    }
 
+    @PutMapping("/{deviceRecordId}")
+    public ResponseEntity<DeviceResource> updateDeviceByDeviceRecordId(@PathVariable String deviceRecordId, @RequestBody UpdateDeviceResource updateDeviceResource) {
+        var updateDeviceCommand = UpdateDeviceCommandFromResourceAssembler.toCommandFromResource(deviceRecordId, updateDeviceResource);
+        var device = deviceCommandService.handle(updateDeviceCommand);
+        if (device.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        var deviceResource = DeviceResourceFromEntityAssembler.toResourceFromEntity(device.get());
+        return ResponseEntity.ok(deviceResource);
     }
 
 }

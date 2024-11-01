@@ -6,6 +6,7 @@ import com.digitaldart.guardian.area.monitoring.interfaces.rest.resource.GeoFenc
 public class GeoFenceResourceFromEntityAssembler {
     public static GeoFenceResource toResourceFromEntity(GeoFence geoFence){
         return new GeoFenceResource(
+                geoFence.getId(),
                 geoFence.getName(),
                 geoFence.getGeoFenceStatus().toString(),
                 geoFence.getCoordinates().stream().map(GeoFence::toLatitudeAndLongitudePairFromCoordinate).toList(),

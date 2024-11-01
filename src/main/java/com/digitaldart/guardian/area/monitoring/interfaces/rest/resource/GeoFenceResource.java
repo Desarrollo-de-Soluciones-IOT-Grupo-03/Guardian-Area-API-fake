@@ -4,5 +4,5 @@ import com.digitaldart.guardian.area.shared.domain.model.valueobjects.Pair;
 
 import java.util.List;
 
-public record GeoFenceResource(String name, String geoFenceStatus, List<Pair<Float, Float>> coordinates, String guardianAreaDeviceRecordId) {
+public record GeoFenceResource(Long id, String name, String geoFenceStatus, List<Pair<Float, Float>> coordinates, String guardianAreaDeviceRecordId) {
 }

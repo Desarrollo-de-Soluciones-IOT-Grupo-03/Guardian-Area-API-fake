@@ -2,6 +2,8 @@ package com.digitaldart.guardian.area.monitoring.application.internal.queyservic
 
 import com.digitaldart.guardian.area.monitoring.domain.model.aggregates.GeoFence;
 import com.digitaldart.guardian.area.monitoring.domain.model.queries.GetAllGeoFencesByGuardianAreaDeviceRecordIdQuery;
+import com.digitaldart.guardian.area.monitoring.domain.model.queries.GetDeviceByGuardianAreaDeviceRecordIdQuery;
+import com.digitaldart.guardian.area.monitoring.domain.model.queries.GetGeoFenceByIdQuery;
 import com.digitaldart.guardian.area.monitoring.domain.services.GeoFenceQueryService;
 import com.digitaldart.guardian.area.monitoring.infrastructure.persistence.jpa.repositories.DeviceRepository;
 import com.digitaldart.guardian.area.monitoring.infrastructure.persistence.jpa.repositories.GeoFenceRepository;
@@ -9,6 +11,7 @@ import com.digitaldart.guardian.area.shared.domain.exceptions.ResourceNotFoundEx
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class GeoFenceQueryServiceImpl implements GeoFenceQueryService {
@@ -28,5 +31,14 @@ public class GeoFenceQueryServiceImpl implements GeoFenceQueryService {
             throw new ResourceNotFoundException("Device not found");
         }
         return geoFenceRepository.findAllByGuardianAreaDeviceRecordId(device.get().getGuardianAreaDeviceRecordId());
+    }
+
+    @Override
+    public Optional<GeoFence> handle(GetGeoFenceByIdQuery query) {
+        var geoFence = geoFenceRepository.findById(query.geoFenceId());
+        if (geoFence.isEmpty()){
+            throw new ResourceNotFoundException("GeoFence not found");
+        }
+        return geoFence;
     }
 }

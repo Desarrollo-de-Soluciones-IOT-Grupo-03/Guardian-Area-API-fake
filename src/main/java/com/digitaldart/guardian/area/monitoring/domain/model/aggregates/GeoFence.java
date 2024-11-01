@@ -1,6 +1,7 @@
 package com.digitaldart.guardian.area.monitoring.domain.model.aggregates;
 
 import com.digitaldart.guardian.area.monitoring.domain.model.commands.CreateGeoFenceCommand;
+import com.digitaldart.guardian.area.monitoring.domain.model.commands.UpdateGeoFenceCommand;
 import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.Coordinate;
 import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.GeoFenceStatuses;
 import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.GuardianAreaDeviceRecordId;
@@ -58,6 +59,14 @@ public class GeoFence extends AuditableAbstractAggregateRoot<GeoFence> {
 
     public static Pair<Float, Float> toLatitudeAndLongitudePairFromCoordinate(Coordinate coordinate) {
         return new Pair<>(coordinate.latitude(), coordinate.longitude());
+    }
+
+    public void updateGeofence(UpdateGeoFenceCommand command){
+        this.name = command.name();
+        this.geoFenceStatus = command.geoFenceStatus();
+        this.coordinates.clear();
+        this.coordinates.addAll(command.coordinates());
+        validateCoordinates();
     }
 
     public String getDeviceRecordId() {

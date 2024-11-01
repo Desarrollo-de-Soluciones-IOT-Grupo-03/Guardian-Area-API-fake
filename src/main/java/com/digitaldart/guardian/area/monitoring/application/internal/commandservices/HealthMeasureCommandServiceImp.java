@@ -6,6 +6,7 @@ import com.digitaldart.guardian.area.monitoring.domain.services.HealthMeasureCom
 import com.digitaldart.guardian.area.monitoring.infrastructure.persistence.jpa.repositories.DeviceRepository;
 import com.digitaldart.guardian.area.monitoring.infrastructure.persistence.jpa.repositories.HealthMeasureRepository;
 import com.digitaldart.guardian.area.shared.domain.exceptions.ResourceNotFoundException;
+import com.digitaldart.guardian.area.shared.domain.exceptions.ValidationException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -23,9 +24,9 @@ public class HealthMeasureCommandServiceImp implements HealthMeasureCommandServi
 
     @Override
     public Optional<HealthMeasure> handle(CreateHealthMeasureCommand command) {
-        var existDeviceByGuardianAreaDeviceRecordId = deviceRepository.existsByGuardianAreaDeviceRecordId(command.guardianAreaDeviceRecordId());
-        if (!existDeviceByGuardianAreaDeviceRecordId) {
-            throw new ResourceNotFoundException("Device does not exist");
+        var device = deviceRepository.findByGuardianAreaDeviceRecordIdAndApiKey(command.guardianAreaDeviceRecordId(), command.apiKey());
+        if (device.isEmpty()) {
+            throw new ValidationException("Incorrect device Id or API key");
         }
         var healthMeasure = new HealthMeasure(
                 command.bpm(),

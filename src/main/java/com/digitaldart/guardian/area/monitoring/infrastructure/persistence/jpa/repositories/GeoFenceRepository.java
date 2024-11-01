@@ -11,6 +11,7 @@ import java.util.Optional;
 @Repository
 public interface GeoFenceRepository extends JpaRepository<GeoFence, Long> {
     boolean existsByNameAndGuardianAreaDeviceRecordId(String name, GuardianAreaDeviceRecordId guardianAreaDeviceRecordId);
+    Optional<GeoFence> findByGuardianAreaDeviceRecordId(GuardianAreaDeviceRecordId guardianAreaDeviceRecordId);
     Optional<GeoFence> findByNameAndGuardianAreaDeviceRecordId(String name, GuardianAreaDeviceRecordId guardianAreaDeviceRecordId);
     List<GeoFence> findAllByGuardianAreaDeviceRecordId(GuardianAreaDeviceRecordId guardianAreaDeviceRecordId);
 }

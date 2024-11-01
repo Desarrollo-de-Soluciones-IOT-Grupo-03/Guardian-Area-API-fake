@@ -1,5 +1,10 @@
 package com.digitaldart.guardian.area.monitoring.interfaces.websocket.handler;
 
+import com.digitaldart.guardian.area.monitoring.domain.services.HealthMeasureCommandService;
+import com.digitaldart.guardian.area.monitoring.interfaces.websocket.resource.CreateHealthMeasureResource;
+import com.digitaldart.guardian.area.monitoring.interfaces.websocket.transform.CreateHealthMeasureCommandFromResourceAssembler;
+import com.digitaldart.guardian.area.monitoring.interfaces.websocket.transform.HealthMeasureResourceFromEntityAssembler;
+import com.digitaldart.guardian.area.shared.domain.exceptions.ValidationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -16,10 +21,15 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class MyWebSocketHandler extends TextWebSocketHandler {
 
+    private final HealthMeasureCommandService healthMeasureCommandService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // Mapa para almacenar las sesiones agrupadas por sala
     private final Map<String, Set<WebSocketSession>> roomSessions = new ConcurrentHashMap<>();
+
+    public MyWebSocketHandler(HealthMeasureCommandService healthMeasureCommandService) {
+        this.healthMeasureCommandService = healthMeasureCommandService;
+    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
@@ -33,9 +43,17 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        System.out.println("Mensaje recibido: " + message.getPayload() + " " +session.getUri());
-        var room = getRoomNameFromSession(session);
-        broadcastMessageToRoom(room, message.getPayload(), session);
+        var createHealthMeasureResource = objectMapper.readValue(message.getPayload(), CreateHealthMeasureResource.class);
+        var apiKey = getRoomNameFromSession(session);
+        var createHealthMeasureCommand = CreateHealthMeasureCommandFromResourceAssembler.toCommandFromResource(apiKey, createHealthMeasureResource);
+        var healthMeasure = healthMeasureCommandService.handle(createHealthMeasureCommand);
+        if (healthMeasure.isEmpty()) {
+            broadcastMessageToRoom(apiKey, "Failed to create", session);
+            throw new ValidationException("");
+        }
+        var healthMeasureResource = HealthMeasureResourceFromEntityAssembler.toResourceFromEntity(healthMeasure.get());
+        var healthMeasureResourceString = objectMapper.writeValueAsString(healthMeasureResource);
+        broadcastMessageToRoom(apiKey, healthMeasureResourceString, session);
     }
 
     // Método para enviar un mensaje a todas las sesiones

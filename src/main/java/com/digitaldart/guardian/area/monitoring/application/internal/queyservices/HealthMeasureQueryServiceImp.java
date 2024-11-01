@@ -23,8 +23,8 @@ public class HealthMeasureQueryServiceImp implements HealthMeasureQueryService {
 
     @Override
     public List<HealthMeasure> handle(GetAllHealthMeasuresByDeviceRecordIdQuery query) {
-        var existsDeviceByGuardianAreaDeviceRecordId = deviceRepository.existsByGuardianAreaDeviceRecordId(query.guardianAreaDeviceRecordId());
-        if (!existsDeviceByGuardianAreaDeviceRecordId) {
+        var device = deviceRepository.findByGuardianAreaDeviceRecordId(query.guardianAreaDeviceRecordId());
+        if (device.isEmpty()) {
             throw new ResourceNotFoundException("Device does not exist");
         }
         return healthMeasureRepository.findAllByGuardianAreaDeviceRecordId(query.guardianAreaDeviceRecordId());

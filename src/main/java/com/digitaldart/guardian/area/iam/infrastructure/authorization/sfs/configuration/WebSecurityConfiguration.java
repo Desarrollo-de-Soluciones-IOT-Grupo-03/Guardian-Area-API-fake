@@ -86,6 +86,7 @@ public class WebSecurityConfiguration {
                                 "/api/v1/devices/register",
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html",
+                                "/health-measures-stream",
                                 "/swagger-ui/**",
                                 "/swagger-resources/**",
                                 "/webjars/**").permitAll()

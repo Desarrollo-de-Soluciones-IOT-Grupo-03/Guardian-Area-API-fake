@@ -11,7 +11,7 @@ public class DeviceResourceFromEntityAssembler {
                 device.getBearer(),
                 device.getDeviceCareModes().toString(),
                 device.getDeviceStatuses().toString(),
-                device.getUserId(),
+                device.getUserId().userId(),
                 device.getApiKey().apiKey()
         );
     }

@@ -29,6 +29,7 @@ public class Device extends AuditableAbstractAggregateRoot<Device> {
     private DeviceCareModes deviceCareModes;
 
     @Setter
+    @Getter
     @Embedded
     private UserId userId;
 
@@ -53,8 +54,8 @@ public class Device extends AuditableAbstractAggregateRoot<Device> {
         this.userId = userId;
     }
 
-    public Device(AssignDeviceCommand command){
-        this(new UserId(command.userId()));
+    public void assignDevice(AssignDeviceCommand command){
+        this.userId = new UserId(command.userId());
         this.guardianAreaDeviceRecordId = command.guardianAreaDeviceRecordId();
         this.deviceNickname = "-";
         this.bearer = "-";
@@ -81,10 +82,6 @@ public class Device extends AuditableAbstractAggregateRoot<Device> {
 
     public String getDeviceRecordId() {
         return this.guardianAreaDeviceRecordId.deviceRecordId();
-    }
-
-    public Long getUserId() {
-        return this.userId.userId();
     }
 
 }

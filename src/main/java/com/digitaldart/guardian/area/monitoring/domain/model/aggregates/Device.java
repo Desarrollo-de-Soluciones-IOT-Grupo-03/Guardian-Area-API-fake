@@ -42,7 +42,12 @@ public class Device extends AuditableAbstractAggregateRoot<Device> {
     @Embedded
     private ApiKey apiKey;
 
+    @Getter
+    @Embedded
+    private HealthThresholds healthThresholds;
+
     public Device() {
+        this.healthThresholds = new HealthThresholds();
         this.userId = new UserId();
         this.deviceStatuses = DeviceStatuses.DISCONNECTED;
         this.deviceCareModes = DeviceCareModes.INFANT;
@@ -64,6 +69,7 @@ public class Device extends AuditableAbstractAggregateRoot<Device> {
     }
 
     public Device(RegisterDeviceCommand command, String apiKey) {
+        this.healthThresholds = new HealthThresholds();
         this.userId = null;
         this.deviceNickname = null;
         this.bearer = null;

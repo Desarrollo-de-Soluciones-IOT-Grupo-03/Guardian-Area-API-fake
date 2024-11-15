@@ -1,10 +1,9 @@
 package com.digitaldart.guardian.area.monitoring.interfaces.websocket.handler;
 import com.digitaldart.guardian.area.monitoring.domain.model.aggregates.GeoFence;
+import com.digitaldart.guardian.area.monitoring.domain.model.commands.CreateActivityCommand;
 import com.digitaldart.guardian.area.monitoring.domain.model.queries.GetAllGeoFencesByGuardianAreaDeviceRecordIdQuery;
-import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.Coordinate;
-import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.GeoFenceStatuses;
-import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.GuardianAreaDeviceRecordId;
-import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.RiskLevel;
+import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.*;
+import com.digitaldart.guardian.area.monitoring.domain.services.ActivityCommandService;
 import com.digitaldart.guardian.area.monitoring.domain.services.GeoFenceCommandService;
 import com.digitaldart.guardian.area.monitoring.domain.services.GeoFenceQueryService;
 import com.digitaldart.guardian.area.monitoring.interfaces.websocket.resource.CreateHealthMeasureResource;
@@ -27,13 +26,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GpsWebSocketHandler extends TextWebSocketHandler {
 
     private final GeoFenceQueryService geoFenceQueryService;
+
+    private final ActivityCommandService activityCommandService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // Mapa para almacenar las sesiones agrupadas por sala
     private final Map<String, Set<WebSocketSession>> roomSessions = new ConcurrentHashMap<>();
 
-    public GpsWebSocketHandler(GeoFenceQueryService geoFenceQueryService) {
+    public GpsWebSocketHandler(GeoFenceQueryService geoFenceQueryService, ActivityCommandService activityCommandService) {
         this.geoFenceQueryService = geoFenceQueryService;
+        this.activityCommandService = activityCommandService;
     }
 
     @Override
@@ -66,7 +68,10 @@ public class GpsWebSocketHandler extends TextWebSocketHandler {
             isInsideFromAnyGeoFence = isInsideFromAnyGeoFence || isInsideFromThisGeoFence;
         }
         if (!isInsideFromAnyGeoFence) {
-            //TODO: guardan en tabla de actividades que se encuentra fuera de las geocercas
+            // Saving activity from geofence
+            var command = new CreateActivityCommand(guardianAreaId, ActivityEventName.GEOFENCE_EXIT, ActivityType.GPS);
+            activityCommandService.handle(command);
+
             gpsResource = new GpsResource(
                     currentLocationCoordinate.latitude(),
                     currentLocationCoordinate.longitude(),

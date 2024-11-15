@@ -25,7 +25,7 @@ public class GeoFence extends AuditableAbstractAggregateRoot<GeoFence> {
     private GeoFenceStatuses geoFenceStatus;
 
     @Getter
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "geofence_coordinates", joinColumns = @JoinColumn(name = "geofence_id"))
     private List<Coordinate> coordinates;
 

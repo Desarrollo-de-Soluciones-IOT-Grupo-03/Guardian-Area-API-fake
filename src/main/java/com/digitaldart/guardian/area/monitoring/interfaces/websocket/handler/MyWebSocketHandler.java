@@ -1,5 +1,11 @@
 package com.digitaldart.guardian.area.monitoring.interfaces.websocket.handler;
 
+import com.digitaldart.guardian.area.monitoring.domain.model.commands.CreateActivityCommand;
+import com.digitaldart.guardian.area.monitoring.domain.model.queries.GetDeviceByGuardianAreaDeviceRecordIdQuery;
+import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.ActivityEventName;
+import com.digitaldart.guardian.area.monitoring.domain.model.valueobjects.ActivityType;
+import com.digitaldart.guardian.area.monitoring.domain.services.ActivityCommandService;
+import com.digitaldart.guardian.area.monitoring.domain.services.DeviceQueryService;
 import com.digitaldart.guardian.area.monitoring.domain.services.HealthMeasureCommandService;
 import com.digitaldart.guardian.area.monitoring.interfaces.websocket.resource.CreateHealthMeasureResource;
 import com.digitaldart.guardian.area.monitoring.interfaces.websocket.transform.CreateHealthMeasureCommandFromResourceAssembler;
@@ -22,13 +28,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MyWebSocketHandler extends TextWebSocketHandler {
 
     private final HealthMeasureCommandService healthMeasureCommandService;
+    private final DeviceQueryService deviceQueryService;
+    private final ActivityCommandService activityCommandService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // Mapa para almacenar las sesiones agrupadas por sala
     private final Map<String, Set<WebSocketSession>> roomSessions = new ConcurrentHashMap<>();
 
-    public MyWebSocketHandler(HealthMeasureCommandService healthMeasureCommandService) {
+    public MyWebSocketHandler(HealthMeasureCommandService healthMeasureCommandService, DeviceQueryService deviceQueryService, ActivityCommandService activityCommandService) {
         this.healthMeasureCommandService = healthMeasureCommandService;
+        this.deviceQueryService = deviceQueryService;
+        this.activityCommandService = activityCommandService;
     }
 
     @Override
@@ -43,14 +53,44 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+
         var createHealthMeasureResource = objectMapper.readValue(message.getPayload(), CreateHealthMeasureResource.class);
         var apiKey = getRoomNameFromSession(session);
+
+        // Creating healthMeasure
         var createHealthMeasureCommand = CreateHealthMeasureCommandFromResourceAssembler.toCommandFromResource(apiKey, createHealthMeasureResource);
         var healthMeasure = healthMeasureCommandService.handle(createHealthMeasureCommand);
+
+        //Getting device
+        var queryDevice = new GetDeviceByGuardianAreaDeviceRecordIdQuery(healthMeasure.get().getGuardianAreaDeviceRecordId());
+        var device = deviceQueryService.handle(queryDevice);
+
+        //Check if healthMeasure was created successfully
         if (healthMeasure.isEmpty()) {
             broadcastMessageToRoom(apiKey, "Failed to create", session);
             throw new ValidationException("");
         }
+
+        // check for any threshold surpass bpm
+        var bpm = healthMeasure.get().getBpm().bpm();
+        if (device.get().getHealthThresholds().maxBpm() < bpm) {
+            var createActivityCommand = new CreateActivityCommand(device.get().getGuardianAreaDeviceRecordId(), ActivityEventName.HIGH_HEART_RATE, ActivityType.BPM);
+            activityCommandService.handle(createActivityCommand);
+        } else if (device.get().getHealthThresholds().minBpm() > bpm) {
+            var createActivityCommand = new CreateActivityCommand(device.get().getGuardianAreaDeviceRecordId(), ActivityEventName.LOW_HEART_RATE, ActivityType.BPM);
+            activityCommandService.handle(createActivityCommand);
+        }
+
+        // check for any threshold surpass spo2
+        var spo2 = healthMeasure.get().getSpo2().spo2();
+        if (device.get().getHealthThresholds().maxSpO2() < spo2) {
+            var createActivityCommand = new CreateActivityCommand(device.get().getGuardianAreaDeviceRecordId(), ActivityEventName.HIGH_SPO2, ActivityType.SPO2);
+            activityCommandService.handle(createActivityCommand);
+        } else if (device.get().getHealthThresholds().minSpO2() > spo2) {
+            var createActivityCommand = new CreateActivityCommand(device.get().getGuardianAreaDeviceRecordId(), ActivityEventName.LOW_SPO2, ActivityType.SPO2);
+            activityCommandService.handle(createActivityCommand);
+        }
+
         var healthMeasureResource = HealthMeasureResourceFromEntityAssembler.toResourceFromEntity(healthMeasure.get());
         var healthMeasureResourceString = objectMapper.writeValueAsString(healthMeasureResource);
         broadcastMessageToRoom(apiKey, healthMeasureResourceString, session);
